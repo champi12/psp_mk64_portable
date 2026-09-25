@@ -19,6 +19,7 @@
 #endif
 #include "menus.h"
 #include "code_800029B0.h"
+#include <objects.h>
 #include "cpu_vehicles_camera_path.h"
 #include "course.h"
 #include <stdio.h>
@@ -361,6 +362,31 @@ void port_input_script(OSContPad* pad) {
     }
 #endif
     if (sFrame == 482) { extern int gPortTraceArm; gPortTraceArm = 4; }
+#ifdef PORT_COURSE_TEST
+    /* Sherbet Land (12): park the kart in front of the first penguin at frame
+     * 1400, facing it, and hold still (issue #17: its eyes). */
+    if (gPortForceCourse == 12 && gGamestate == RACING && gPlayerOne != NULL && sFrame >= 1100 && sFrame <= 1700) {
+        Object* pg = &gObjectList[indexObjectList1[0]];
+        if (sFrame == 1250) {
+            s32 k;
+            for (k = 0; k < 4; k++) PORT_LOG("script: penguin %d: object %d state %d pos (%.0f %.0f %.0f)\n", k, indexObjectList1[k], gObjectList[indexObjectList1[k]].state, gObjectList[indexObjectList1[k]].pos[0], gObjectList[indexObjectList1[k]].pos[1], gObjectList[indexObjectList1[k]].pos[2]);
+        }
+        if (sFrame == 1250) { /* the race has started; before the steering steps drive it into the water */
+            Player* p = gPlayerOne;
+            f32 yaw = (f32) (s16) pg->orientation[1] * (6.2831853f / 65536.0f);
+            f32 dx = 350.0f * sinf(-yaw), dz = 350.0f * cosf(-yaw); /* 350 units in front of it (forward is (sin -yaw, cos -yaw)), looking back at it */
+            PORT_LOG("script: penguin yaw %d\n", (int) (s16) pg->orientation[1]);
+            p->pos[0] = p->oldPos[0] = pg->pos[0] + dx;
+            p->pos[2] = p->oldPos[2] = pg->pos[2] + dz;
+            p->pos[1] = p->oldPos[1] = pg->pos[1] + 5.0f;
+            p->velocity[0] = p->velocity[1] = p->velocity[2] = 0.0f;
+            p->rotation[1] = (s16) (u16) (s32) (atan2f(-(-dx), -dz) * (65536.0f / 6.2831853f));
+            PORT_LOG("script f%u: parked at (%.0f %.0f %.0f) by penguin (%.0f %.0f %.0f)\n", sFrame, p->pos[0], p->pos[1], p->pos[2], pg->pos[0], pg->pos[1], pg->pos[2]);
+        }
+        pad->button = 0; pad->stick_x = 0; pad->stick_y = 0;
+        if (sFrame >= 1250 && (sFrame % 30) == 0 && (sFrame % SHOT_EVERY) != 0 && !(sFrame >= 1380 && sFrame <= 1700)) port_screenshot((int) sFrame);
+    }
+#endif
 #ifdef PORT_MIRROR_TEST
     /* EXTRA mode without the unlock: mirror mode is set from the class OK and
      * cleared outside RACING (code_800029B0.c), so hold it on through the

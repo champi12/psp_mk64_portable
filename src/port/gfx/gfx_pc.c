@@ -1986,12 +1986,19 @@ static void gfx_eval_vertex_color(uint32_t cc_id, const struct RGBA *shade, int 
     // Note: with fog on, the RSP stores the fog factor in the shade alpha and
     // MK64's fogged combiners route it into the output alpha; blending that
     // against the sky/ground gradient the game draws first is the port's fog.
+    // "(TEXEL0 - X) * TEXEL0_ALPHA + X" is a decal: the backend hands it to the
+    // GE's DECAL texture function, which lerps from the vertex colour to the
+    // texel by texel alpha -- so the vertex colour must be X, the combiner at
+    // texel alpha 0.  Evaluated at texel alpha 1 (as every other slot) it was
+    // (1 - X) + X = white, and the transparent part of the texture came out
+    // white: the penguins' square eyes on Sherbet Land (#17).
+    int decal = (cc_id & 7) == CC_TEXEL0 && ((cc_id >> 6) & 7) == CC_TEXEL0A;
     for (ch = 0; ch < 4; ch++) {
         int k = (ch == 3) ? 1 : 0;
         uint32_t bits = cc_id >> (k * 12);
         int a = cc_eval_slot(bits & 7, (cc_id >> (28 + k)) & 1, shade, lod, ch);
         int b = cc_eval_slot((bits >> 3) & 7, 0, shade, lod, ch);
-        int c = cc_eval_slot((bits >> 6) & 7, 0, shade, lod, ch);
+        int c = (decal && k == 0) ? 0 : cc_eval_slot((bits >> 6) & 7, 0, shade, lod, ch);
         int d = cc_eval_slot((bits >> 9) & 7, (cc_id >> (30 + k)) & 1, shade, lod, ch);
         int v = ((a - b) * c) / 255 + d;
         o[ch] = (uint8_t) (v < 0 ? 0 : v > 255 ? 255 : v);
@@ -3032,6 +3039,7 @@ static void gfx_sp_movemem(uint8_t index, uint8_t offset, const void* data) {
             if (lightidx >= 0 && lightidx <= MAX_LIGHTS) { // skip lookat
                 // NOTE: reads out of bounds if it is an ambient light
                 memcpy(rsp.current_lights + lightidx, data, sizeof(Light_t));
+                rsp.lights_changed = 1;
             }
             break;
         }
@@ -3041,6 +3049,11 @@ static void gfx_sp_movemem(uint8_t index, uint8_t offset, const void* data) {
         case G_MV_L2:
             // NOTE: reads out of bounds if it is an ambient light
             memcpy(rsp.current_lights + (index - G_MV_L0) / 2, data, sizeof(Light_t));
+            // A light load is a change too: the VFPU lighting tables (colours,
+            // ambient, directions) are rebuilt only when this is set, and the
+            // penguins on Sherbet Land load their light with no matrix load in
+            // between -- their beaks were lit by all-zero tables (#17).
+            rsp.lights_changed = 1;
             break;
 #endif
     }
