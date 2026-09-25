@@ -488,6 +488,9 @@ void func_802A86A8(CourseVtx* data, u32 arg1) {
 
     gHeapEndPtr -= tmp;
     vtx = (Vtx*) gHeapEndPtr;
+#ifdef TARGET_PSP
+    port_mirrored_vertices(gIsMirrorMode ? (const void*) vtx : NULL, (u32) tmp);
+#endif
 
     // s32 to u32 comparison required for matching.
     for (i = 0; i < arg1; i++) {

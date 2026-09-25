@@ -102,6 +102,14 @@ extern float gPortDrawDist;
 extern s32 gPortLogDefer;         /* port_log buffers in RAM (an unpaused race) */
 void port_log_flush(void);
 
+/* EXTRA (mirror) mode: the game negates every course vertex's X at load and,
+ * while unpacking the course's packed display lists, swaps each triangle's
+ * first and third vertex so the mirrored faces still point outward.  The port
+ * draws precompiled display lists and never unpacks, so memory.c reports the
+ * mirrored vertex block and the interpreter swaps the winding of triangles
+ * built from it (issue #20: the courses were back-face culled away). */
+void port_mirrored_vertices(const void* start, u32 bytes);
+
 /* Frame hooks implemented by the platform backend. */
 void port_gfx_run(Gfx* dl);        // execute a display list (F3DEX -> sceGu)
 void port_gfx_start_frame(void);

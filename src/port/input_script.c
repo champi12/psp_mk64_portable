@@ -361,6 +361,14 @@ void port_input_script(OSContPad* pad) {
     }
 #endif
     if (sFrame == 482) { extern int gPortTraceArm; gPortTraceArm = 4; }
+#ifdef PORT_MIRROR_TEST
+    /* EXTRA mode without the unlock: mirror mode is set from the class OK and
+     * cleared outside RACING (code_800029B0.c), so hold it on through the
+     * menus after the class was picked and it carries into setup_race. */
+    if (sFrame >= 600 && gGamestate != RACING) {
+        gIsMirrorMode = 1;
+    }
+#endif
 #ifdef PORT_FINISH_TEST
     /* Any course: two laps already counted as the race starts, so the first
      * crossing of the line (the karts start just behind it, and the pad is held

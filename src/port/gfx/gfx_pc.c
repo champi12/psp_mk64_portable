@@ -1572,10 +1572,25 @@ static void gfx_vfpu_lights_refresh(void) {
 /* main.c's hardware cost breakdown (data/exp): 0 = everything, 1 = no
  * triangles, 2 = no vertices either, 3 = the display list is not run, 4 =
  * triangles culled and clipped but not drawn, 5 = no texture imports. */
+/* port.h: the course's mirrored vertex block, and which of the 64 vertex slots
+ * were loaded from it. */
+static const uint8_t *mirror_vtx_lo, *mirror_vtx_hi;
+static uint64_t mirror_slots;
+void port_mirrored_vertices(const void *start, u32 bytes) {
+    mirror_vtx_lo = (const uint8_t *) start;
+    mirror_vtx_hi = start != NULL ? mirror_vtx_lo + bytes : NULL;
+    mirror_slots = 0;
+}
+
 static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *vertices) {
 #ifdef PORT_EXP_NOVTX
     return;
 #endif
+    if (mirror_vtx_lo != NULL) {
+        int in = (const uint8_t *) vertices >= mirror_vtx_lo && (const uint8_t *) vertices < mirror_vtx_hi;
+        uint64_t m = n_vertices >= 64 ? ~(uint64_t) 0 : (((uint64_t) 1 << n_vertices) - 1) << dest_index;
+        mirror_slots = in ? (mirror_slots | m) : (mirror_slots & ~m);
+    }
     EXPCOUNT(9, (u32) n_vertices);
     if (EXP_MODE(2)) return;
     float temp_vec[4] __attribute__((aligned(16)));
@@ -2515,6 +2530,13 @@ static void gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx) {
 #ifdef PORT_EXP_NOTRI
     return;
 #endif
+    if (mirror_slots != 0 && (mirror_slots >> vtx1_idx) & 1) {
+        /* mirrored course geometry: the winding the N64's unpacker would have
+         * written (first and third vertex swapped) */
+        uint8_t t = vtx1_idx;
+        vtx1_idx = vtx3_idx;
+        vtx3_idx = t;
+    }
     if (EXP_MODE(1) || EXP_MODE(2)) return;
     EXPCOUNT(0, 1);
 #ifdef PORT_PROFILE_DL
