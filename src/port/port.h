@@ -106,9 +106,10 @@ void port_log_flush(void);
  * while unpacking the course's packed display lists, swaps each triangle's
  * first and third vertex so the mirrored faces still point outward.  The port
  * draws precompiled display lists and never unpacks, so memory.c reports the
- * mirrored vertex block and the interpreter swaps the winding of triangles
- * built from it (issue #20: the courses were back-face culled away). */
+ * mirrored vertex block. Both rendering and collision generation must swap
+ * the winding of triangles built from it (issue #20). */
 void port_mirrored_vertices(const void* start, u32 bytes);
+int port_is_mirrored_vertex(const void* vertex);
 
 /* Frame hooks implemented by the platform backend. */
 void port_gfx_run(Gfx* dl);        // execute a display list (F3DEX -> sceGu)

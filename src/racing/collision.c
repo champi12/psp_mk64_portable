@@ -13,6 +13,10 @@
 #include "code_800029B0.h"
 #include <defines.h>
 
+#ifdef TARGET_PSP
+#include "port.h"
+#endif
+
 #pragma intrinsic(sqrtf)
 
 // Used to delete the choco mountain guard rail
@@ -1553,6 +1557,17 @@ f32 get_surface_height(f32 posX, f32 posY, f32 posZ) {
         out = c;
 
 void add_collision_triangle(Vtx* vtx1, Vtx* vtx2, Vtx* vtx3, s8 surfaceType, u16 sectionId) {
+#ifdef TARGET_PSP
+    /* The N64's course unpacker reverses mirrored triangles before rendering
+     * and collision read them. Our precompiled lists keep their original
+     * order, so restore it here too. Only vertices mirrored by the course
+     * loader qualify; other collision geometry keeps its original winding. */
+    if (port_is_mirrored_vertex(vtx1) && port_is_mirrored_vertex(vtx2) && port_is_mirrored_vertex(vtx3)) {
+        Vtx* t = vtx1;
+        vtx1 = vtx3;
+        vtx3 = t;
+    }
+#endif
     CollisionTriangle* triangle = &gCollisionMesh[gCollisionMeshCount];
     s16 x2;
     s16 z2;

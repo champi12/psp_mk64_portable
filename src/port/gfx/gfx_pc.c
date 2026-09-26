@@ -1582,12 +1582,17 @@ void port_mirrored_vertices(const void *start, u32 bytes) {
     mirror_slots = 0;
 }
 
+int port_is_mirrored_vertex(const void *vertex) {
+    uintptr_t addr = (uintptr_t) vertex;
+    return mirror_vtx_lo != NULL && addr >= (uintptr_t) mirror_vtx_lo && addr < (uintptr_t) mirror_vtx_hi;
+}
+
 static void gfx_sp_vertex(size_t n_vertices, size_t dest_index, const Vtx *vertices) {
 #ifdef PORT_EXP_NOVTX
     return;
 #endif
     if (mirror_vtx_lo != NULL) {
-        int in = (const uint8_t *) vertices >= mirror_vtx_lo && (const uint8_t *) vertices < mirror_vtx_hi;
+        int in = port_is_mirrored_vertex(vertices);
         uint64_t m = n_vertices >= 64 ? ~(uint64_t) 0 : (((uint64_t) 1 << n_vertices) - 1) << dest_index;
         mirror_slots = in ? (mirror_slots | m) : (mirror_slots & ~m);
     }

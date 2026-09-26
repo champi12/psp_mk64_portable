@@ -394,6 +394,7 @@ void port_input_script(OSContPad* pad) {
     if (sFrame >= 600 && gGamestate != RACING) {
         gIsMirrorMode = 1;
     }
+    if (sFrame >= 960 && sFrame <= 1400 && (sFrame % 20) == 0 && (sFrame % SHOT_EVERY) != 0 && (sFrame % 30) != 0) port_screenshot((int) sFrame);
 #endif
 #ifdef PORT_FINISH_TEST
     /* Any course: two laps already counted as the race starts, so the first
