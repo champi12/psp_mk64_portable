@@ -15,7 +15,12 @@ the same order, so game speed, physics, ghosts and the ad hoc lockstep are
 untouched: a scripted race logs identical kart positions either way, and the
 60 fps pictures match the 30 fps renders of the same game frames.
 
-- Only a plain, unpaused 1P race splits (`port_frame_can_split`, main.c).  2P-4P,
+- Hold Start + Select for one second to toggle Performance Mode (split frames)
+  and Classic Mode (whole 30 fps frames). The confirmation appears for 1.5 s.
+  `data/fps_mode.txt` saves the choice immediately; no preference defaults to
+  Performance. Both chord buttons are consumed until both are released; Start
+  alone now reaches the game on release. Select's tap / 3 s hold still work.
+- Only a plain, unpaused 1P race in Performance Mode splits (`port_frame_can_split`, main.c).  2P-4P,
   the menus, the results screen and ad hoc sessions keep whole 30 fps frames.
 - `end_frame` waits one vblank per picture.  A late picture makes the game run
   slow, so past 15 late pictures in 120 it falls back to whole frames -- and

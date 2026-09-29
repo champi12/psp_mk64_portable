@@ -1474,9 +1474,39 @@ s32 gPortVblanksPerFrame = 2;
 s32 gPortLastFrameVblanks = 2;
 u32 gPortLastFrameBusyUs = 0;
 static s32 sPortSplitHoldoff; /* iterations left at 30 fps after 60 could not be held */
+static s32 sPortClassicMode; /* saved preference; Start + Select toggles whole frames */
 static s32 sExpRunning;        /* PORT_EXP builds: the data/exp measurement is rotating its experiments */
 static s32 sNoDirect = -1;
 extern int gPortNoDirectEmit;  /* gfx_pc.c */
+
+void port_fps_mode_init(void) {
+    char mode[16];
+    FILE* f = fopen(port_save_path("fps_mode.txt"), "rb");
+    sPortClassicMode = 0;
+    if (f != NULL) {
+        if (fgets(mode, sizeof(mode), f) != NULL && strcmp(mode, "classic\n") == 0) sPortClassicMode = 1;
+        fclose(f);
+    }
+    PORT_LOG("fps: %s Mode loaded\n", sPortClassicMode ? "Classic" : "Performance");
+}
+
+void port_toggle_fps_mode(void) {
+    FILE* f;
+    const char* mode;
+    s32 saved = 0;
+    sPortClassicMode = !sPortClassicMode;
+    sPortSplitHoldoff = 0; /* explicitly returning to Performance tries 60 again */
+    /* One small write when the user changes mode, never per frame. Keep this
+     * separate from the game's EEPROM so the preference cannot affect saves. */
+    mode = sPortClassicMode ? "classic\n" : "performance\n";
+    f = fopen(port_save_path("fps_mode.txt"), "wb");
+    if (f != NULL) {
+        saved = fwrite(mode, 1, strlen(mode), f) == strlen(mode);
+        if (fclose(f) != 0) saved = 0;
+    }
+    port_gfx_show_fps_mode(sPortClassicMode, saved);
+    PORT_LOG("fps: %s Mode selected (%s)\n", sPortClassicMode ? "Classic" : "Performance", saved ? "saved" : "save failed");
+}
 
 /* A frame may be split when it is a plain 1P race frame: the 2P-4P loops and
  * the lockstep (one network frame per iteration) keep whole frames. */
@@ -1493,7 +1523,7 @@ static s32 port_frame_can_split(void) {
         return 0;
     }
 #endif
-    if (gGamestate != RACING || gActiveScreenMode != SCREEN_MODE_1P || gIsGamePaused != 0 ||
+    if (sPortClassicMode || gGamestate != RACING || gActiveScreenMode != SCREEN_MODE_1P || gIsGamePaused != 0 ||
         gIsInQuitToMenuTransition != 0 || sPortSplitHoldoff > 0) {
         return 0;
     }

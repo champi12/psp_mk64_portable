@@ -96,6 +96,11 @@ extern s32 gPortHalfFrame;
 extern s32 gPortVblanksPerFrame;  /* what end_frame waits for: 2 (30 fps) or 1 (60 fps) */
 extern s32 gPortLastFrameVblanks; /* how many the last frame actually took */
 extern u32 gPortLastFrameBusyUs;  /* its CPU+GE time, the vblank wait excluded */
+/* Performance Mode is the default until a preference is saved. Classic Mode
+ * keeps whole 30 fps frames; neither mode changes simulation ticks. */
+void port_fps_mode_init(void);
+void port_toggle_fps_mode(void);
+void port_gfx_show_fps_mode(s32 classic, s32 saved);
 /* The draw-distance cull (gfx_pc.c), in clip.w units: PORT_DRAW_DIST at most,
  * pulled in by the 60 fps governor (main.c) while pictures arrive late. */
 extern float gPortDrawDist;

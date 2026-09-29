@@ -11,6 +11,7 @@
  *   Start            -> Start
  *   Select (tap)     -> C-right (cycle the HUD: map / positions / speedometer)
  *   Select (hold 3s) -> toggle the FPS counter (not passed to the game)
+ *   Start + Select (hold 1s) -> toggle Classic / Performance Mode
  */
 #include <ultra64.h>
 #include <pspctrl.h>
@@ -51,23 +52,48 @@ void controller_psp_read(OSContPad* pad) {
     u16 b = 0;
 
     sceCtrlPeekBufferPositive(&d, 1);
-    /* SELECT: a tap is the N64 C-right (in a race it cycles the HUD: map /
-     * positions / speedometer -- issue #3); holding it for 3 seconds toggles
-     * the FPS counter (off by default).  The C-right press is delivered when
-     * the button is released, so a long hold does not also change the HUD. */
+    /* Reserve both buttons until their gesture is known. Start alone is sent
+     * on release, so either order of pressing the chord cannot pause first.
+     * Once a chord begins, consume both buttons until BOTH are released. */
     {
         extern int gPortShowFps;
-        static u32 selectSince; static int selectArmed = 1;
-        static int selectTapPending; /* release detected: send C-right for one read */
+        static u32 selectSince, chordSince;
+        static int startHeld, selectHeld, selectConsumed;
+        static int chordActive, chordTiming, chordFired;
+        const u32 chord = PSP_CTRL_START | PSP_CTRL_SELECT;
+        u32 held = d.Buttons & chord;
         u32 now = sceKernelGetSystemTimeLow();
-        if (d.Buttons & PSP_CTRL_SELECT) {
-            if (selectSince == 0) selectSince = now ? now : 1;
-            else if (selectArmed && now - selectSince >= 3000000u) { gPortShowFps = !gPortShowFps; selectArmed = 0; }
-        } else {
-            if (selectSince != 0 && selectArmed && now - selectSince < 500000u) selectTapPending = 1;
-            selectSince = 0; selectArmed = 1;
+        if (held == chord) {
+            chordActive = 1;
+            startHeld = selectHeld = selectConsumed = 0;
+            if (!chordTiming) {
+                chordSince = now;
+                chordTiming = 1;
+            }
+            if (!chordFired && now - chordSince >= 1000000u) {
+                port_toggle_fps_mode();
+                chordFired = 1;
+            }
         }
-        if (selectTapPending) { b |= R_CBUTTONS; selectTapPending = 0; }
+        if (chordActive) {
+            if (held != chord) chordTiming = 0;
+            if (held == 0) chordActive = chordFired = 0;
+        } else {
+            if (held & PSP_CTRL_SELECT) {
+                if (!selectHeld) {
+                    selectSince = now;
+                    selectHeld = 1;
+                } else if (!selectConsumed && now - selectSince >= 3000000u) {
+                    gPortShowFps = !gPortShowFps;
+                    selectConsumed = 1;
+                }
+            } else {
+                if (selectHeld && !selectConsumed && now - selectSince < 500000u) b |= R_CBUTTONS;
+                selectHeld = selectConsumed = 0;
+            }
+            if (startHeld && !(held & PSP_CTRL_START)) b |= START_BUTTON;
+            startHeld = (held & PSP_CTRL_START) != 0;
+        }
     }
 
     if (d.Buttons & PSP_CTRL_CROSS) {
@@ -90,9 +116,6 @@ void controller_psp_read(OSContPad* pad) {
     }
     if (d.Buttons & PSP_CTRL_TRIANGLE) {
         b |= U_CBUTTONS;
-    }
-    if (d.Buttons & PSP_CTRL_START) {
-        b |= START_BUTTON;
     }
     if (d.Buttons & PSP_CTRL_UP) {
         b |= U_JPAD;

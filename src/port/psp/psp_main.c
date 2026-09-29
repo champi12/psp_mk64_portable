@@ -90,9 +90,9 @@ void init_audiomanager(void) {
 }
 
 /* ------------------------------------------------------------------------- */
-/* On-screen FPS counter: a 4x6 digit font drawn as 2D sprites at frame end.  */
+/* FPS counter and mode notification: a 4x6 font drawn at frame end.          */
 /* ------------------------------------------------------------------------- */
-static const u8 sDigitFont[11][6] = { // 4 wide x 6 tall, MSB = leftmost
+static const u8 sOverlayFont[37][6] = { // 4 wide x 6 tall, MSB = leftmost
     { 0x60, 0x90, 0x90, 0x90, 0x90, 0x60 }, // 0
     { 0x20, 0x60, 0x20, 0x20, 0x20, 0x70 }, // 1
     { 0x60, 0x90, 0x10, 0x20, 0x40, 0xF0 }, // 2
@@ -104,42 +104,98 @@ static const u8 sDigitFont[11][6] = { // 4 wide x 6 tall, MSB = leftmost
     { 0x60, 0x90, 0x60, 0x90, 0x90, 0x60 }, // 8
     { 0x60, 0x90, 0x90, 0x70, 0x10, 0x60 }, // 9
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x20 }, // .
+    { 0x60, 0x90, 0x90, 0xF0, 0x90, 0x90 }, // A
+    { 0xE0, 0x90, 0xE0, 0x90, 0x90, 0xE0 }, // B
+    { 0x70, 0x80, 0x80, 0x80, 0x80, 0x70 }, // C
+    { 0xE0, 0x90, 0x90, 0x90, 0x90, 0xE0 }, // D
+    { 0xF0, 0x80, 0xE0, 0x80, 0x80, 0xF0 }, // E
+    { 0xF0, 0x80, 0xE0, 0x80, 0x80, 0x80 }, // F
+    { 0x70, 0x80, 0x80, 0xB0, 0x90, 0x70 }, // G
+    { 0x90, 0x90, 0xF0, 0x90, 0x90, 0x90 }, // H
+    { 0x70, 0x20, 0x20, 0x20, 0x20, 0x70 }, // I
+    { 0x70, 0x10, 0x10, 0x10, 0x90, 0x60 }, // J
+    { 0x90, 0xA0, 0xC0, 0xC0, 0xA0, 0x90 }, // K
+    { 0x80, 0x80, 0x80, 0x80, 0x80, 0xF0 }, // L
+    { 0x90, 0xF0, 0xF0, 0x90, 0x90, 0x90 }, // M
+    { 0x90, 0xD0, 0xD0, 0xB0, 0xB0, 0x90 }, // N
+    { 0x60, 0x90, 0x90, 0x90, 0x90, 0x60 }, // O
+    { 0xE0, 0x90, 0x90, 0xE0, 0x80, 0x80 }, // P
+    { 0x60, 0x90, 0x90, 0x90, 0xB0, 0x70 }, // Q
+    { 0xE0, 0x90, 0x90, 0xE0, 0xA0, 0x90 }, // R
+    { 0x70, 0x80, 0x60, 0x10, 0x10, 0xE0 }, // S
+    { 0xF0, 0x20, 0x20, 0x20, 0x20, 0x20 }, // T
+    { 0x90, 0x90, 0x90, 0x90, 0x90, 0x60 }, // U
+    { 0x90, 0x90, 0x90, 0x90, 0x60, 0x60 }, // V
+    { 0x90, 0x90, 0x90, 0xF0, 0xF0, 0x90 }, // W
+    { 0x90, 0x90, 0x60, 0x60, 0x90, 0x90 }, // X
+    { 0x90, 0x90, 0x60, 0x20, 0x20, 0x20 }, // Y
+    { 0xF0, 0x10, 0x20, 0x40, 0x80, 0xF0 }, // Z
 };
-static u16 sFontTex[64 * 8] __attribute__((aligned(16))); // 11 glyphs of 4x6 in a 64x8 5551 texture
+static u16 sFontTex[256 * 8] __attribute__((aligned(16))); // 37 glyphs in a 256x8 5551 texture
 static u32 sFontTexId;
 static u32 sFpsShown; // fps * 10
+static u32 sModeNoticeSince;
+static int sModeNoticeVisible, sModeNoticeClassic, sModeNoticeSaved;
+
+void port_gfx_show_fps_mode(s32 classic, s32 saved) {
+    sModeNoticeClassic = classic;
+    sModeNoticeSaved = saved;
+    sModeNoticeSince = sceKernelGetSystemTimeLow();
+    sModeNoticeVisible = 1;
+}
 
 static void overlay_build_font(void) {
     int g, y, x;
-    for (g = 0; g < 11; g++) {
+    for (g = 0; g < 37; g++) {
         for (y = 0; y < 6; y++) {
             for (x = 0; x < 4; x++) {
-                sFontTex[y * 64 + g * 5 + x] = (sDigitFont[g][y] & (0x80 >> x)) ? 0xFFFF : 0x0000; // 5551: opaque white / transparent
+                sFontTex[y * 256 + g * 5 + x] = (sOverlayFont[g][y] & (0x80 >> x)) ? 0xFFFF : 0x0000; // 5551: opaque white / transparent
             }
         }
     }
 }
 
-void port_gfx_overlay(void) {
+static void overlay_draw_text(const char* text, int x, int y, int scale, u32 color) {
     extern void gfx_scegu_draw_triangles_2d(float buf_vbo[], size_t len, size_t n);
+    int i;
+    for (i = 0; text[i] != 0; i++, x += 5 * scale) {
+        int g;
+        if (text[i] == ' ') continue;
+        g = text[i] == '.' ? 10 : (text[i] >= 'A' ? text[i] - 'A' + 11 : text[i] - '0');
+        {
+            struct { u16 u, v; u32 color; u16 x, y, z; } spr[2] = {
+                { (u16) (g * 5), 0, color, (u16) x, (u16) y, 0 },
+                { (u16) (g * 5 + 4), 6, color, (u16) (x + 4 * scale), (u16) (y + 6 * scale), 0 }
+            };
+            gfx_scegu_draw_triangles_2d((float*) spr, 0, 1);
+        }
+    }
+}
+
+void port_gfx_overlay(void) {
+    extern int gPortShowFps;
     struct GfxRenderingAPI* r = &gfx_opengl_api;
     static u32 sLastT, sFrames;
     static int sInited;
     u32 now = sceKernelGetSystemTimeLow();
-    char text[8];
-    int i, x = 4;
+    int showFps = gPortShowFps;
+#ifdef PORT_NO_FPS
+    showFps = 0;
+#endif
+    if (sModeNoticeVisible && now - sModeNoticeSince >= 1500000u) sModeNoticeVisible = 0;
+    if (!showFps) { sLastT = now; sFrames = 0; }
+    if (!showFps && !sModeNoticeVisible) return;
     if (!sInited) {
         overlay_build_font();
         sInited = 1;
         sLastT = now;
     }
-    sFrames++;
-    if (now - sLastT >= 500000) { // update twice a second
+    if (showFps) sFrames++;
+    if (showFps && now - sLastT >= 500000) { // update twice a second
         sFpsShown = (u32) ((u64) sFrames * 10000000 / (now - sLastT));
         sFrames = 0;
         sLastT = now;
     }
-    snprintf(text, sizeof(text), "%u.%u", sFpsShown / 10, sFpsShown % 10);
     {
         struct ShaderProgram* prg = r->lookup_shader(0x05000045); // texture only, alpha test (texture edge)
         if (prg == NULL) {
@@ -164,7 +220,7 @@ void port_gfx_overlay(void) {
             sFontGen = texman_generation();
             sFontTexId = r->new_texture();
             r->select_texture(0, sFontTexId);
-            r->upload_texture((const u8*) sFontTex, 64, 8, 1 /* GU_PSM_5551 */);
+            r->upload_texture((const u8*) sFontTex, 256, 8, 1 /* GU_PSM_5551 */);
         } else {
             r->select_texture(0, sFontTexId);
         }
@@ -176,14 +232,20 @@ void port_gfx_overlay(void) {
     sceGuEnable(GU_ALPHA_TEST);
     sceGuAlphaFunc(GU_GREATER, 0x55, 0xff);
     sceGuEnable(GU_BLEND);
-    for (i = 0; text[i] != 0; i++) {
-        int g = text[i] == '.' ? 10 : text[i] - '0';
-        struct { u16 u, v; u32 color; u16 x, y, z; } spr[2] = {
-            { (u16) (g * 5), 0, 0xFF00FF00, (u16) x, 4, 0 },
-            { (u16) (g * 5 + 4), 6, 0xFF00FF00, (u16) (x + 4), 10, 0 } // 1x: 4x6 px glyphs
-        };
-        gfx_scegu_draw_triangles_2d((float*) spr, 0, 1);
-        x += 5;
+    if (showFps) {
+        char text[16];
+        snprintf(text, sizeof(text), "%u.%u", sFpsShown / 10, sFpsShown % 10);
+        overlay_draw_text(text, 4, 4, 1, 0xFF00FF00);
+    }
+    if (sModeNoticeVisible) {
+        const char* text = sModeNoticeClassic ? "CLASSIC MODE" : "PERFORMANCE MODE";
+        int x = (480 - ((int) strlen(text) * 5 - 1) * 2) / 2;
+        overlay_draw_text(text, x + 1, 21, 2, 0xFF000000);
+        overlay_draw_text(text, x, 20, 2, 0xFFFFFFFF);
+        if (!sModeNoticeSaved) {
+            overlay_draw_text("NOT SAVED", 197, 37, 2, 0xFF000000);
+            overlay_draw_text("NOT SAVED", 196, 36, 2, 0xFFFFFFFF);
+        }
     }
     // Force the interpreter to re-apply its own state next frame.
     {
@@ -330,6 +392,7 @@ int main(UNUSED int argc, char** argv) {
     port_assets_load(argc > 0 ? argv[0] : NULL); // ROM-derived data lives outside the EBOOT
     // (no boot banner: the debug console is only initialised so the screen is black until the GE draws)
     port_fs_init();
+    port_fps_mode_init();
     port_audio_out_init();
     PORT_LOG("boot\n");
 #ifdef PORT_ME_AUDIO

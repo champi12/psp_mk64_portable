@@ -24,6 +24,10 @@ not a project for you.
   (32 MB); the game simulates exactly what the N64 did and shows a picture after
   every simulation step.  Heavy stretches drop to 30 fps for a moment rather
   than run slow.  Menus, split screen and the results screen run at 30 fps.
+- Hold Start + Select for 1 second to switch single-player races between
+  **Performance Mode** (60 fps) and **Classic Mode** (locked 30 fps). The mode
+  name appears briefly and your preference is saved for the next launch.
+  Performance Mode is the default; multiplayer stays at 30 fps in both modes.
 - All cups and courses: Grand Prix, Time Trial, VS and Battle
 - Ad hoc multiplayer: two to four PSPs race or battle over ad hoc WLAN, each
   showing its own player full screen (2P/3P/4P GAME, then HOST or JOIN;
@@ -67,10 +71,11 @@ fresh extraction on the next start (you lose the save in it).
 | Circle or L | Z — use item |
 | R | R — hop / drift |
 | Triangle | C-up — look behind |
-| Start | Start / pause |
+| Start (tap) | Start / pause on release |
 | Select (tap) | C-right — cycle the race HUD: map, positions, speedometer |
 | L / R on the game select screen | Open OPTION / DATA (the N64 L and R) |
 | Hold Select for 3 seconds | Show or hide the FPS counter |
+| Hold Start + Select for 1 second | Switch Classic / Performance Mode (saved; 1P races only) |
 
 ## Building from source
 

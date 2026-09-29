@@ -4083,9 +4083,7 @@ void gfx_run(Gfx *commands) {
     gfx_flush();
     {
         extern void port_gfx_overlay(void);
-#ifndef PORT_NO_FPS
-        if (gPortShowFps) port_gfx_overlay(); // FPS counter, off by default; hold SELECT 3 s to toggle
-#endif
+        port_gfx_overlay(); // optional FPS counter and brief mode-change confirmation
     }
     {
         uint32_t t_end = port_time_us();
