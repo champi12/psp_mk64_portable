@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include "port.h"
 #include "port_assets.h"
+#include "ips_patch.h" /* optional .ips patch applied over the ROM */
 
 extern u8 __assets_start[], __assets_end[];
 extern u8 _ftext[];
@@ -21,6 +22,7 @@ static const PortAssetPattern* sPatterns; /* set by blob_parse */
 
 /* ------------------------------------------------------------------ ROM */
 static FILE* sRom;
+static int sPatched; /* an .ips patch is active */
 static int sRomMode; /* 0 = z64 (big-endian), 1 = v64 (byte-swapped pairs), 2 = n64 (little-endian words) */
 
 static void fix_order(u8* b, u32 n) {
@@ -49,6 +51,7 @@ static int rom_read(u32 off, u8* dst, u32 len) {
         }
         pos += n;
     }
+    ips_overlay(off, dst, len);
     return 1;
 }
 
@@ -65,6 +68,8 @@ int port_rom_open(const char* path, char* err, u32 errlen) {
     rom_read(0, hdr, sizeof(hdr));
     if (memcmp(hdr + 0x20, "MARIOKART64", 11) != 0) { snprintf(err, errlen, "not Mario Kart 64"); fclose(sRom); sRom = NULL; return 0; }
     if (hdr[0x3E] != 'E') { snprintf(err, errlen, "not the US (NTSC) version (region '%c')", hdr[0x3E]); fclose(sRom); sRom = NULL; return 0; }
+    sPatched = ips_open(path) && ips_active();
+    if (sPatched) PORT_LOG("assets: IPS patch found next to the ROM, applying it\n");
     return 1;
 }
 
@@ -224,6 +229,12 @@ static int load_block(u32 rom_off, char* err, u32 errlen) {
     return 1;
 }
 
+/* RAW recipes that the recipe deriver matched inside a compressed block's raw
+ * stream: read them from the decompressed block so patched ROMs work. */
+static const struct { u32 src, size, block, extra; } sFragile[] = {
+    { 0x13B59Eu, 500u, 0x132B50u, 0x00000u },
+};
+
 static int sCrcFailed;
 int port_assets_crc_failed(void) { return sCrcFailed; }
 #define POOL_BYTES (3 * 1024 * 1024)
@@ -253,6 +264,22 @@ int port_assets_generate(const char* dir, const char* rom_path, void (*progress)
         u8* dst = region + r->dst;
         switch (r->kind) {
             case PA_RAW:
+                {
+                    u32 fi, nf = sizeof(sFragile) / sizeof(sFragile[0]);
+                    for (fi = 0; fi < nf; fi++) if (sFragile[fi].src == r->src && sFragile[fi].size == r->size) break;
+                    if (fi < nf) {
+                        if (!load_block(sFragile[fi].block, err, errlen)) { fclose(sRom); return 0; }
+                        emit_xformed(dst, sBlockBuf + sFragile[fi].extra, r->size, r->xform);
+                        break;
+                    }
+                }
+                if (r->src == 0x13B59Eu && r->size == 500 && r->xform == PA_XF_ID) {
+                    /* banner palette: the recipe matched it inside the common MIO0
+                     * block's raw stream; decompress instead so a patched ROM works */
+                    if (!load_block(0x132B50u, err, errlen)) { fclose(sRom); return 0; }
+                    memcpy(dst, sBlockBuf, r->size);
+                    break;
+                }
                 if (r->xform == PA_XF_ID) {
                     if (!rom_read(r->src, dst, r->size)) { snprintf(err, errlen, "ROM read failed at %08X", (unsigned) r->src); fclose(sRom); return 0; }
                 } else {
@@ -306,6 +333,7 @@ int port_assets_generate(const char* dir, const char* rom_path, void (*progress)
     gHeapEndPtr = saved_heap_end;
     fclose(sRom); sRom = NULL;
 
+    ips_close(); /* everything has been read */
     /* Verify before pointers go in: crc of the region with pointer words zero
      * (literal recipes carry their link-time pointer values: clear them). */
     for (i = 0; i < sH->reloc_count; i++) *(u32*) (region + (sRelocs[i].off & 0x7FFFFFFFu)) = 0;
@@ -313,7 +341,7 @@ int port_assets_generate(const char* dir, const char* rom_path, void (*progress)
         u32 crc;
         crc_init();
         crc = crc_update(0, region, region_size);
-        if (crc != sH->data_crc) {
+        if (crc != sH->data_crc && !sPatched) { /* a patched ROM is expected to differ */
             snprintf(err, errlen, "extracted data does not match (crc %08X, expected %08X) - wrong ROM?", (unsigned) crc, (unsigned) sH->data_crc);
 #ifdef PORT_ASSETS_VERIFY
             PORT_LOG("assets: CRC MISMATCH %s (continuing for verification)\n", err);

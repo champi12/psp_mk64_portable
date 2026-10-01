@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 16
-  name: skyscraper
+  name: rascacielos
   debug_name: skyscraper
   cup: BATTLE_CUP
   cup_index: 3

@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 10
-  name: toad's turnpike
+  name: autopista de toad
   debug_name: highway
   cup: FLOWER_CUP
   cup_index: 0

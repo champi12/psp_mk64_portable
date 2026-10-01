@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 7
-  name: royal raceway
+  name: circuito real
   debug_name: p circuit
   cup: STAR_CUP
   cup_index: 2

@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 17
-  name: double deck
+  name: doble piso
   debug_name: deck
   cup: BATTLE_CUP
   cup_index: 2

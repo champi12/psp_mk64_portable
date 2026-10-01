@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 3
-  name: banshee boardwalk
+  name: muelle embrujado
   debug_name: ghost
   cup: SPECIAL_CUP
   cup_index: 2

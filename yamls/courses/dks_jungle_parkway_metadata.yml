@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 18
-  name: d.k.'s jungle parkway
+  name: circuito jungla de dk
   debug_name: jungle
   cup: SPECIAL_CUP
   cup_index: 0

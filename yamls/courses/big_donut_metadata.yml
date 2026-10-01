@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 19
-  name: big donut
+  name: gran rosquilla
   debug_name: doughnut
   cup: BATTLE_CUP
   cup_index: 0

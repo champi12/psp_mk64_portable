@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 4
-  name: yoshi valley
+  name: valle de yoshi
   debug_name: maze
   cup: SPECIAL_CUP
   cup_index: 1

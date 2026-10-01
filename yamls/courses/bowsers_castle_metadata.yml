@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 2
-  name: bowser's castle
+  name: castillo de bowser
   debug_name: castle
   cup: STAR_CUP
   cup_index: 3

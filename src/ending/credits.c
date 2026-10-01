@@ -69,17 +69,17 @@ CreditsRenderInfo gCreditsTextRenderInfo[] = {
 
 char* gCreditsText[] = {
     // English Credits
-    "executive producer", "hiroshi yamauchi", "producer", "shigeru miyamoto", "director", "hideki konno",
-    "assistant director", "yasuyuki oyagi", "programmer", "masato kimura", "kenji yamamoto", "yasuhiro kawaguchi",
-    "yuzuru ogawa", "masahiro kawano", "hirohito yoshimoto", "demo sequence programmer", "", "hajime yajima",
-    "takumi kawagoe", "visual director", "tadashi sugiyama", "c.g.character designer", "", "tomoaki kuroume",
-    "hiroaki takenaka", "tokihiko toyoda", "shigefumi hino", "masanao arimoto", "hisashi nogami", "c.g.map designer",
-    "makoto miyanaga", "naoki mori", "hiroyasu kuwabara", "music composer", "kenta nagata", "sound programmer",
-    "taro bando", "yoji inagaki", "sampling voice", "charles martinet", "leslie swan", "isaac marshall", "", "", "",
-    "technical support", "takao sawano", "tsuyoshi takahashi", "hirohito yada", "progress management",
-    "kimiyoshi fukui", "keizo kato", "special thanks", "yasuhiro sakai", "yoshitaka nishikawa", "hideki fujii",
-    "yusuke nakano", "wataru yamaguchi", "phil sandhop", "super mario club",
-    "Donkey Kong 3-D Model Provided Courtesy of Rare U.K.", "the end", "mariokart64 staff",
+    "productor ejecutivo", "hiroshi yamauchi", "productor", "shigeru miyamoto", "director", "hideki konno",
+    "asistente director", "yasuyuki oyagi", "programador", "masato kimura", "kenji yamamoto", "yasuhiro kawaguchi",
+    "yu2uru ogawa", "masahiro kawano", "hirohito yoshimoto", "programacion de secuencia", "", "hajime yajima",
+    "takumi kawagoe", "director visual", "tadashi sugiyama", "disezo personajes c.g.i.", "", "tomoaki kuroume",
+    "hiroaki takenaka", "tokihiko toyoda", "shigefumi hino", "masanao arimoto", "hisashi nogami", "disezo mapa c.g.i.",
+    "makoto miyanaga", "naoki mori", "hiroyasu kuwabara", "compositor", "kenta nagata", "programacion sonido",
+    "taro bando", "yoji inagaki", "muestra vocal", "charles martinet", "leslie swan", "isaac marshall", "", "", "",
+    "soporte tecnico", "takao sawano", "tsuyoshi takahashi", "hirohito yada", "gestion de progreso",
+    "kimiyoshi fukui", "kei2o kato", "agradecimientos", "yasuhiro sakai", "yoshitaka nishikawa", "hideki fujii",
+    "yusuke nakano", "wataru yamaguchi", "phil sandhop", "club super mario",
+    "Modelo 3-D Donkey Kong Cedido Por Cortesia de Rare U.K.", "fin", "reparto mariokart64",
     // Japanese Credits
     // Note that these are EUC-JP encoded, see:
     // https://en.wikipedia.org/wiki/Extended_Unix_Code#EUC-JP

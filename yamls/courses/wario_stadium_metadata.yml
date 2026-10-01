@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 14
-  name: wario stadium
+  name: estadio wario
   debug_name: stadium
   cup: STAR_CUP
   cup_index: 0

@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 9
-  name: moo moo farm
+  name: granja mu-mu
   debug_name: farm
   cup: MUSHROOM_CUP
   cup_index: 1

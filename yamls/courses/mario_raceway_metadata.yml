@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 0
-  name: mario raceway
+  name: circuito de mario
   debug_name: m circuit
   cup: FLOWER_CUP
   cup_index: 3

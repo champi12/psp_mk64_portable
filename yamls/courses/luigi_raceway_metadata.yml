@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 8
-  name: luigi raceway
+  name: circuito de luigi
   debug_name: l circuit
   cup: MUSHROOM_CUP
   cup_index: 0

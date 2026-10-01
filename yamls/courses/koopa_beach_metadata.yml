@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 6
-  name: koopa troopa beach
+  name: playa koopa troopa
   debug_name: beach
   cup: MUSHROOM_CUP
   cup_index: 2

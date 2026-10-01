@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 1
-  name: choco mountain
+  name: monte chocolate
   debug_name: mountain
   cup: FLOWER_CUP
   cup_index: 2

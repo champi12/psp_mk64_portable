@@ -842,7 +842,7 @@ void port_net_lobby_update(void) {
 }
 
 static const char* mode_name(int mode) {
-    switch (mode) { case 0: return "GRAND PRIX"; case 1: return "TIME TRIALS"; case 2: return "VS"; case 3: return "BATTLE"; }
+    switch (mode) { case 0: return "GRAN PREMIO"; case 1: return "CONTRARRELOJ"; case 2: return "VS"; case 3: return "BATALLA"; }
     return "";
 }
 static const char* cc_name(int mode, int cc) {
@@ -936,12 +936,12 @@ void port_net_lobby_draw(void) {
     gDisplayListHead = draw_box(gDisplayListHead, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0, 0x90); /* dim the menu */
     sPanelQuadN = 0;
     lobby_panel(LB_X0, LB_Y0, LB_X1, LB_Y1, 0xF4);
-    lobby_line(LB_Y0 + 34, "AD HOC PLAY", 1.0f, TEXT_YELLOW);
+    lobby_line(LB_Y0 + 34, "JUEGO AD HOC", 1.0f, TEXT_YELLOW);
     snprintf(line, sizeof(line), "%dP %s %s", sCritPlayers, mode_name(sCritMode), cc_name(sCritMode, sCritCc));
     lobby_line(LB_Y0 + 56, line, 0.75f, TEXT_RED);
     switch (sLobby) {
         case LOBBY_CHOICE: {
-            static const char* items[3] = { "HOST RACE", "JOIN RACE", "CANCEL" };
+            static const char* items[3] = { "CREAR CARRERA", "UNIRSE A CARRERA", "CANCELAR" };
             for (s = 0; s < 3; s++) {
                 lobby_item(LB_Y0 + 90 + s * 22, items[s], s == sChoice);
             }
@@ -951,28 +951,28 @@ void port_net_lobby_draw(void) {
         }
         case LOBBY_CONNECT_HOST:
         case LOBBY_CONNECT_JOIN:
-            lobby_line(LB_Y0 + 104, "STARTING WLAN...", 0.65f, TEXT_PORT_GREY_PULSE);
+            lobby_line(LB_Y0 + 104, "INICIANDO WLAN...", 0.65f, TEXT_PORT_GREY_PULSE);
             break;
         case LOBBY_HOSTING:
             for (s = 1; s < sPlayers; s++) n += sKnown[s];
             snprintf(line, sizeof(line), "WAITING FOR %d PLAYER%s", sPlayers - 1 - n, sPlayers - 1 - n == 1 ? "" : "S");
             lobby_line(LB_Y0 + 94, line, 0.65f, TEXT_PORT_GREY_PULSE);
-            if (sOtherBuild) lobby_line(LB_Y0 + 114, "A PSP HAS ANOTHER GAME VERSION", 0.55f, TEXT_RED);
-            lobby_item(LB_Y0 + 138, "CANCEL", sCancelSel);
-            if (sCancelSel) { cursorY = LB_Y0 + 138; cursorText = "CANCEL"; }
+            if (sOtherBuild) lobby_line(LB_Y0 + 114, "OTRA PSP TIENE OTRA VERSION", 0.55f, TEXT_RED);
+            lobby_item(LB_Y0 + 138, "CANCELAR", sCancelSel);
+            if (sCancelSel) { cursorY = LB_Y0 + 138; cursorText = "CANCELAR"; }
             break;
         case LOBBY_SEARCHING:
-            lobby_line(LB_Y0 + 94, sJoined ? "JOINED RACE" : sHaveHost ? "JOINING..." : "SEARCHING...", 0.65f, TEXT_PORT_GREY_PULSE);
-            if (sOtherBuild && !sJoined) lobby_line(LB_Y0 + 114, "A PSP HAS ANOTHER GAME VERSION", 0.55f, TEXT_RED);
-            lobby_item(LB_Y0 + 138, "CANCEL", sCancelSel);
-            if (sCancelSel) { cursorY = LB_Y0 + 138; cursorText = "CANCEL"; }
+            lobby_line(LB_Y0 + 94, sJoined ? "UNIDO A LA CARRERA" : sHaveHost ? "UNIENDOSE..." : "BUSCANDO...", 0.65f, TEXT_PORT_GREY_PULSE);
+            if (sOtherBuild && !sJoined) lobby_line(LB_Y0 + 114, "OTRA PSP TIENE OTRA VERSION", 0.55f, TEXT_RED);
+            lobby_item(LB_Y0 + 138, "CANCELAR", sCancelSel);
+            if (sCancelSel) { cursorY = LB_Y0 + 138; cursorText = "CANCELAR"; }
             break;
         case LOBBY_ERROR:
-            lobby_line(LB_Y0 + 90, "WLAN FAILED", 0.9f, TEXT_RED);
+            lobby_line(LB_Y0 + 90, "FALLO DE WLAN", 0.9f, TEXT_RED);
             lobby_line(LB_Y0 + 110, sErr, 0.55f, TEXT_BLUE);
-            lobby_item(LB_Y0 + 138, "BACK", 1);
+            lobby_item(LB_Y0 + 138, "VOLVER", 1);
             cursorY = LB_Y0 + 138;
-            cursorText = "BACK";
+            cursorText = "VOLVER";
             break;
     }
     if (cursorY >= 0) lobby_cursor(cursorY, cursorText);
@@ -1033,7 +1033,7 @@ static void session_close(void) {
  * players (menus.c).  This runs inside the same lockstep frame on every
  * machine, so no packet is needed and none can be lost.  The host is out and
  * goes on to set up its new race (returns 1); a joiner drops the WLAN and gets
- * "HOST DISCONNECTED" over the game select, which keeps the host's picks so
+ * "EL ANFITRION SE DESCONECTO" over the game select, which keeps the host's picks so
  * OK / JOIN finds the new race (returns 0). */
 int port_net_end_for_new_race(void) {
     PORT_LOG("net: the host set up a %d-player race at frame %u: the %d-player session ends\n", (int) gPlayerCount, (unsigned) sFrame, sPlayers);
@@ -1125,35 +1125,35 @@ void port_net_modal_draw(void) {
     switch (sModal) {
         case MODAL_HOST_DROP:
             modal_line(MD_Y0 + 30, line, 0.7f, TEXT_RED);
-            modal_item(MD_Y0 + 62, "CONTINUE", sModalSel == 0);
-            modal_item(MD_Y0 + 84, "EXIT", sModalSel == 1);
+            modal_item(MD_Y0 + 62, "CONTINUAR", sModalSel == 0);
+            modal_item(MD_Y0 + 84, "SALIR", sModalSel == 1);
             break;
         case MODAL_WAIT_HOST:
             modal_line(MD_Y0 + 30, line, 0.7f, TEXT_RED);
-            modal_line(MD_Y0 + 66, "WAITING FOR HOST...", 0.65f, TEXT_PORT_GREY_PULSE);
+            modal_line(MD_Y0 + 66, "ESPERANDO AL ANFITRION...", 0.65f, TEXT_PORT_GREY_PULSE);
             break;
         case MODAL_HOST_GONE:
-            modal_line(MD_Y0 + 30, "HOST EXITED THE GAME", 0.7f, TEXT_RED);
-            modal_item(MD_Y0 + 74, "MAIN MENU", 1);
+            modal_line(MD_Y0 + 30, "EL ANFITRION SALIO", 0.7f, TEXT_RED);
+            modal_item(MD_Y0 + 74, "MENU PRINCIPAL", 1);
             break;
         case MODAL_HOST_LEFT:
-            modal_line(MD_Y0 + 30, "HOST DISCONNECTED", 0.7f, TEXT_RED);
+            modal_line(MD_Y0 + 30, "EL ANFITRION SE DESCONECTO", 0.7f, TEXT_RED);
             modal_item(MD_Y0 + 74, "OK", 1);
             break;
         case MODAL_DROPPED:
-            modal_line(MD_Y0 + 24, "YOU WERE DROPPED", 0.7f, TEXT_RED);
-            modal_line(MD_Y0 + 42, "FROM THE RACE", 0.7f, TEXT_RED);
-            modal_item(MD_Y0 + 74, "MAIN MENU", 1);
+            modal_line(MD_Y0 + 24, "TE DESCONECTARON", 0.7f, TEXT_RED);
+            modal_line(MD_Y0 + 42, "DE LA CARRERA", 0.7f, TEXT_RED);
+            modal_item(MD_Y0 + 74, "MENU PRINCIPAL", 1);
             break;
         case MODAL_RESULT_FAILED:
-            modal_line(MD_Y0 + 24, "CONNECTION LOST", 0.7f, TEXT_RED);
-            modal_line(MD_Y0 + 42, "RESULT NOT DELIVERED", 0.65f, TEXT_RED);
-            modal_item(MD_Y0 + 74, "MAIN MENU", 1);
+            modal_line(MD_Y0 + 24, "CONEXION PERDIDA", 0.7f, TEXT_RED);
+            modal_line(MD_Y0 + 42, "RESULTADO NO ENVIADO", 0.65f, TEXT_RED);
+            modal_item(MD_Y0 + 74, "MENU PRINCIPAL", 1);
             break;
         case MODAL_DESYNC:
-            modal_line(MD_Y0 + 24, "CONNECTION LOST", 0.7f, TEXT_RED);
-            modal_line(MD_Y0 + 42, "RACE OUT OF SYNC", 0.7f, TEXT_RED);
-            modal_item(MD_Y0 + 74, "MAIN MENU", 1);
+            modal_line(MD_Y0 + 24, "CONEXION PERDIDA", 0.7f, TEXT_RED);
+            modal_line(MD_Y0 + 42, "PERDIDA DE SINCRONIA", 0.7f, TEXT_RED);
+            modal_item(MD_Y0 + 74, "MENU PRINCIPAL", 1);
             break;
     }
 }

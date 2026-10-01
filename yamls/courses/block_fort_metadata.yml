@@ -2,7 +2,7 @@ course:
   type: MK64:METADATA
   offset: 0x0
   id: 15
-  name: block fort
+  name: ciudad bloque
   debug_name: block
   cup: BATTLE_CUP
   cup_index: 1

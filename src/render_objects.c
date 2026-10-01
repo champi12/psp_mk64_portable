@@ -2344,7 +2344,7 @@ void func_8004E6C4(s32 playerId) {
 void draw_simplified_lap_count(s32 playerId) {
     draw_hud_2d_texture_32x8((s32) playerHUD[playerId].lapX, playerHUD[playerId].lapY + 3,
                              (u8*) common_texture_hud_lap);
-    draw_hud_2d_texture_32x16(playerHUD[playerId].lapX + 0x1C, (s32) playerHUD[playerId].lapY,
+    draw_hud_2d_texture_32x16(playerHUD[playerId].lapX + 0x24, (s32) playerHUD[playerId].lapY,
                               (u8*) gHudLapTextures[playerHUD[playerId].alsoLapCount]);
 }
 
