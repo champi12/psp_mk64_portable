@@ -107,7 +107,7 @@ y en las repeticiones de contrarreloj la pausa selecciona sola
   <https://github.com/beckerd/psp_mk64_portable>
 - **Traducción al español de Mario Kart 64 (parche 1.1):**
   su autor original.
-- **Adaptación de la traducción a este port:** Joan Jiménez (champi12).
+- **Adaptación de la traducción a este port:** (champi12).
 
 Mario Kart 64 es una marca de Nintendo. Este proyecto no está
 afiliado a Nintendo y es para uso personal con una copia legal
